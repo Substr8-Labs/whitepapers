@@ -30,6 +30,24 @@ FDAA represents a fundamental shift in how we think about agent architecture —
 
 ---
 
+## 📚 Series Navigation
+
+This paper is **Part 1 of 5** in the Substr8 Labs research series on provable AI infrastructure.
+
+| Order | Paper | Description |
+|-------|-------|-------------|
+| **→ 1** | **FDAA** (this paper) | Foundation — execution model, workspaces, skills |
+| 2 | Skill Verification | Trust — how skills are verified before execution |
+| 3 | ACC | Authorization — what agents are allowed to do |
+| 4 | DCT | Delegation — how permissions pass between agents |
+| 5 | GAM | Memory — how agents remember across sessions |
+
+**Prerequisites:** None — start here.
+
+**Key concepts introduced:** Agent workspace, skills, SOUL.md, MEMORY.md, file-driven execution, sandbox isolation, W^X enforcement.
+
+---
+
 ## Table of Contents
 
 1. [Introduction](#1-introduction)

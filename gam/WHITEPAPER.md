@@ -6,6 +6,28 @@
 
 ---
 
+## 📚 Series Navigation
+
+This paper is **Part 5 of 5** in the Substr8 Labs research series on provable AI infrastructure.
+
+| Order | Paper | Description |
+|-------|-------|-------------|
+| 1 | FDAA | Foundation — execution model, workspaces, skills |
+| 2 | Skill Verification | Trust — how skills are verified before execution |
+| 3 | ACC | Authorization — what agents are allowed to do |
+| 4 | DCT | Delegation — how permissions pass between agents |
+| **→ 5** | **GAM** (this paper) | Memory — how agents remember across sessions |
+
+**Prerequisites:** FDAA — understand workspaces, MEMORY.md, and the file-driven paradigm.
+
+**Key concepts introduced:** Git as database, cryptographic memory provenance, semantic search with embeddings, temporal decay scoring, memory poisoning defense.
+
+**Builds on:** FDAA's workspace model (MEMORY.md, memory/*.md files) — GAM provides the verification layer for these files.
+
+**Completes the stack:** With GAM, agents can execute (FDAA), be verified (Skill Verification), have permissions (ACC), delegate (DCT), and remember (GAM) — all provably.
+
+---
+
 ## Abstract
 
 The paper addresses a critical shortcoming in current AI agent memory systems: the lack of verifiability. Existing memory approaches fail to provide cryptographic proof of memory provenance, a human-readable audit trail, or efficient semantic retrieval, leaving them vulnerable to security threats such as prompt injection and memory poisoning attacks. To overcome these challenges, this study introduces Git-Native Agent Memory (GAM), a novel framework leveraging git's version control primitives to establish a cryptographically verifiable, human-auditable, and temporally-aware memory system for AI agents. GAM ensures memory provenance and security by utilizing git's inherent capabilities, offering a robust solution to the verifiability problem. Key contributions of this work include the development of a memory system that aligns with Substr8's core thesis: AI systems should be provable, not merely probable. The implementation of GAM demonstrates its ability to provide a secure and transparent memory structure, addressing critical security issues and enhancing trust in AI systems. The implications of this research are significant, suggesting that adopting a git-native approach can fundamentally improve the reliability and security of AI memory systems, paving the way for more trustworthy and accountable AI applications.

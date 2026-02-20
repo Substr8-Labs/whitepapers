@@ -5,6 +5,28 @@
 
 ---
 
+## 📚 Series Navigation
+
+This paper is **Part 4 of 5** in the Substr8 Labs research series on provable AI infrastructure.
+
+| Order | Paper | Description |
+|-------|-------|-------------|
+| 1 | FDAA | Foundation — execution model, workspaces, skills |
+| 2 | Skill Verification | Trust — how skills are verified before execution |
+| 3 | ACC | Authorization — what agents are allowed to do |
+| **→ 4** | **DCT** (this paper) | Delegation — how permissions pass between agents |
+| 5 | GAM | Memory — how agents remember across sessions |
+
+**Prerequisites:** ACC — understand capability-based authorization and why agents need explicit permissions.
+
+**Key concepts introduced:** Delegation tokens, Ed25519 signing, monotonic attenuation, permission chaining, offline verification, Macaroons/Biscuits comparison.
+
+**Builds on:** ACC's permission model — DCT is the cryptographic implementation of ACC capabilities.
+
+**Implements:** The token format that carries attenuated permissions when Agent A spawns Agent B.
+
+---
+
 ## Abstract
 
 The increasing deployment of autonomous AI agents necessitates robust mechanisms for secure permission delegation. However, existing cryptographic primitives fall short in facilitating capability delegation between such agents. This paper introduces Delegation Capability Tokens (DCT), a novel cryptographic primitive designed to address this gap. DCT enables secure permission delegation among AI agents, ensuring least-privilege execution for tasks, creating auditable delegation chains, and enforcing strict permission boundaries. Unlike Macaroons, which rely on chained HMACs, DCT employs Ed25519 signatures and adopts an explicit permission model tailored for agent actions. This approach not only simplifies the delegation process compared to Biscuits, which utilizes complex Datalog-based logic, but also provides cryptographic attenuation capabilities absent in OAuth's scope string methodology. The implementation of DCT demonstrates significant advancements in the security and efficiency of permission delegation for autonomous AI agents. By enabling precise and enforceable permission boundaries, DCT enhances the operational security of AI systems, reducing the risk of unauthorized actions and potential breaches. The implications of this work extend to various domains where AI agents are deployed, offering a foundational cryptographic tool for secure and efficient permission management.
