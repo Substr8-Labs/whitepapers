@@ -14,7 +14,7 @@ This repository contains all research publications and specifications from Subst
 | [**ACC**](./acc/WHITEPAPER.md) | v1.0.0 | ✅ Published | Agent Capability Control — Declarative authorization for autonomous AI |
 | [**GAM**](./gam/WHITEPAPER.md) | v2.1.0 | ✅ Published | Git-Native Agent Memory — Versioned, verifiable memory for AI agents |
 | [**Skill Verification**](./skill-verification/WHITEPAPER.md) | v1.0.0 | ✅ Published | Pipeline for cryptographic skill verification |
-| [**DCT**](./dct/SCOPING.md) | v0.1.0 | 📋 Scoping | Distributed Capability Tokens — Offline-verifiable delegation |
+| [**DCT**](./dct/WHITEPAPER.md) | v1.0.0 | ✅ Published | Delegation Capability Tokens — Cryptographic permission delegation |
 
 ---
 
