@@ -8,28 +8,6 @@
 
 ---
 
-## 📚 Series Navigation
-
-This paper is **Part 2 of 5** in the Substr8 Labs research series on provable AI infrastructure.
-
-| Order | Paper | Description |
-|-------|-------|-------------|
-| 1 | FDAA | Foundation — execution model, workspaces, skills |
-| **→ 2** | **Skill Verification** (this paper) | Trust — how skills are verified before execution |
-| 3 | ACC | Authorization — what agents are allowed to do |
-| 4 | DCT | Delegation — how permissions pass between agents |
-| 5 | GAM | Memory — how agents remember across sessions |
-
-**Prerequisites:** FDAA — understand skills, workspaces, and the agent execution model.
-
-**Key concepts introduced:** Four-tier verification (Fast Pass → Guard Model → Sandbox → Registry), Line Jumping attacks, Scope Drift, Rug Pulls, cryptographic skill signing, Ed25519 attestation.
-
-**Builds on:** FDAA's skill primitive and sandbox isolation model.
-
-**Referenced by:** ACC (skill permission declarations), DCT (signed capability tokens).
-
----
-
 ## 1. Introduction
 
 ### 1.1 Problem Statement

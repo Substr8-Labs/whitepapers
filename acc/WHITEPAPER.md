@@ -5,28 +5,6 @@
 
 ---
 
-## 📚 Series Navigation
-
-This paper is **Part 3 of 5** in the Substr8 Labs research series on provable AI infrastructure.
-
-| Order | Paper | Description |
-|-------|-------|-------------|
-| 1 | FDAA | Foundation — execution model, workspaces, skills |
-| 2 | Skill Verification | Trust — how skills are verified before execution |
-| **→ 3** | **ACC** (this paper) | Authorization — what agents are allowed to do |
-| 4 | DCT | Delegation — how permissions pass between agents |
-| 5 | GAM | Memory — how agents remember across sessions |
-
-**Prerequisites:** FDAA (agent/skill model), Skill Verification (trust establishment).
-
-**Key concepts introduced:** Capability-based security, permission declarations, RBAC limitations for agents, monotonic attenuation, ambient authority elimination.
-
-**Builds on:** FDAA skills (which declare required permissions), Skill Verification (which validates declared vs actual behavior).
-
-**Next paper:** DCT — implements the cryptographic tokens that carry ACC capabilities between agents.
-
----
-
 ## Abstract
 
 The rapid evolution of autonomous AI agents presents a significant challenge to traditional access control models, which are predicated on human actors who authenticate once and retain privileges until explicitly revoked. These models, such as Role-Based Access Control (RBAC), are ill-suited for environments where AI agents operate continuously, dynamically spawn sub-agents, and execute tasks at machine speed, leading to a proliferation of roles that outpace policy development. This paper introduces Agent Capability Control (ACC), a novel capability-based authorization framework tailored for autonomous AI ecosystems. ACC mandates that skills declare their required permissions, agents specify their granted capabilities, and sub-agents receive attenuated permissions, ensuring that every authorization decision is auditable and cryptographically secured. By integrating with frameworks such as FDAA, GAM, and DCT, ACC provides comprehensive governance while maintaining formal security properties, including monotonic attenuation, unforgeable capabilities, bounded delegation, and the elimination of ambient authority. ACC transforms agent permissions from an implicit trust problem into an explicit, verifiable, and auditable system, analogous to how HTTPS secures web traffic. This paradigm shift not only enhances security but also prevents entire categories of attacks, offering a robust solution for managing the complex and dynamic nature of AI agent interactions. The implications of ACC are profound, setting a new standard for security in autonomous AI systems and facilitating their safe and scalable deployment.

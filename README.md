@@ -1,98 +1,81 @@
-# Substr8 Labs — Whitepapers
+# Substr8 Labs Research Publications
 
 **Mission:** Provable, auditable, deterministic agent infrastructure.
-
-This repository contains all research publications and specifications from Substr8 Labs.
 
 ---
 
 ## 📚 Papers
 
-| Paper | Version | Status | Description |
-|-------|---------|--------|-------------|
-| [**FDAA**](./fdaa/WHITEPAPER.md) | v1.2.0 | ✅ Published | File-Driven Agent Architecture — Verifiable execution model for AI agents |
-| [**ACC**](./acc/WHITEPAPER.md) | v1.0.0 | ✅ Published | Agent Capability Control — Declarative authorization for autonomous AI |
-| [**GAM**](./gam/WHITEPAPER.md) | v2.1.0 | ✅ Published | Git-Native Agent Memory — Versioned, verifiable memory for AI agents |
-| [**Skill Verification**](./skill-verification/WHITEPAPER.md) | v1.0.0 | ✅ Published | Pipeline for cryptographic skill verification |
-| [**DCT**](./dct/WHITEPAPER.md) | v1.0.0 | ✅ Published | Delegation Capability Tokens — Cryptographic permission delegation |
+| Paper | Version | Description |
+|-------|---------|-------------|
+| [**FDAA**](fdaa/WHITEPAPER.md) | v1.3 | File-Driven Agent Architecture — execution model, workspaces, skills |
+| [**FDAA + MCP Governance**](fdaa/FDAA-MCP-GOVERNANCE.md) | v1.0 | Governing MCP servers with cryptographic audit trails |
+| [**Skill Verification**](skill-verification/WHITEPAPER.md) | v2.0 | Trust pipeline — how skills are verified before execution |
+| [**ACC**](acc/WHITEPAPER.md) | v2.0 | Agent Capability Control — declarative authorization framework |
+| [**DCT**](dct/WHITEPAPER.md) | v1.0 | Delegation Capability Tokens — permission delegation between agents |
+| [**GAM**](gam/WHITEPAPER.md) | **v3.1** | Git-Native Agent Memory — cryptographic verification + attention-weighted retrieval |
 
 ---
 
-## 🏗️ Architecture Overview
+## 🔬 GAM v3.1 Highlights (Latest)
+
+**Git-Native Agent Memory v3.1** introduces:
+
+- **Typed Hints Architecture**: Separates specific hints (entities, dates) from intent hints (generic phrases)
+- **Gated Retrieval**: Query tier classification (keyword/semantic/intent) with selective index participation
+- **Benchmark Results**: MRR +32.5%, Intent Recall@5 5x improvement
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     SUBSTR8 STACK                           │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐        │
-│  │  FDAA   │  │   ACC   │  │   GAM   │  │   DCT   │        │
-│  │         │  │         │  │         │  │         │        │
-│  │ Execute │  │ Authorize│  │ Remember│  │ Delegate│        │
-│  └─────────┘  └─────────┘  └─────────┘  └─────────┘        │
-│       │            │            │            │              │
-│       └────────────┴────────────┴────────────┘              │
-│                         │                                   │
-│              ┌──────────┴──────────┐                        │
-│              │  Skill Verification │                        │
-│              │     Pipeline        │                        │
-│              └─────────────────────┘                        │
-│                                                             │
+│                    WRITE PATH (Git)                         │
+│  Agent stores memory → git commit → embed → index           │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                    READ PATH (Hybrid Search)                │
+│  Query → classify tier → gate indexes → RRF fusion          │
+│  → attention rerank → return verified (git SHA)             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**FDAA** — How agents execute tasks (file-driven, deterministic)  
-**ACC** — What agents are allowed to do (capability-based auth)  
-**GAM** — What agents remember (git-native, verifiable memory)  
-**DCT** — How agents delegate authority (offline-verifiable tokens)  
-**Skill Verification** — How we trust agent skills (cryptographic pipeline)
+---
+
+## 📦 DOI References
+
+| Paper | DOI |
+|-------|-----|
+| FDAA v1.2 | [`10.5281/zenodo.18675147`](https://doi.org/10.5281/zenodo.18675147) |
+| ACC v1.0 | [`10.5281/zenodo.18676278`](https://doi.org/10.5281/zenodo.18676278) |
+| Skill Verification v1.0 | [`10.5281/zenodo.18676240`](https://doi.org/10.5281/zenodo.18676240) |
+| GAM v1.0 | [`10.5281/zenodo.18704573`](https://doi.org/10.5281/zenodo.18704573) |
+| GAM v3.0 | [`10.5281/zenodo.18758191`](https://doi.org/10.5281/zenodo.18758191) |
 
 ---
 
-## 📖 Reading Order
+## 🔗 Related Repositories
 
-**New to Substr8?** Start here:
-
-1. **FDAA** — Core execution model (the foundation)
-2. **ACC** — Authorization layer (what controls the agent)
-3. **GAM** — Memory layer (how agents persist knowledge)
-4. **Skill Verification** — Trust pipeline (how skills are verified)
-5. **DCT** — Delegation (advanced: offline token attenuation)
+- [fdaa-cli](https://github.com/Substr8-Labs/fdaa-cli) — Reference implementation
+- [acc-spec](https://github.com/Substr8-Labs/acc-spec) — ACC specification
+- [gam](https://github.com/Substr8-Labs/gam) — GAM implementation (substr8-gam)
+- [fdaa-proxy](https://github.com/Substr8-Labs/fdaa-proxy) — Governed MCP Gateway
 
 ---
 
-## 🔗 External Links
-
-| Resource | Link |
-|----------|------|
-| Website | [substr8labs.com](https://substr8labs.com) |
-| GitHub | [github.com/Substr8-Labs](https://github.com/Substr8-Labs) |
-| PyPI | [pypi.org/project/substr8](https://pypi.org/project/substr8/) |
-
----
-
-## 📄 Citation
-
-If you use our work, please cite:
+## 📖 Citation
 
 ```bibtex
-@misc{substr8labs2026,
-  author = {Substr8 Labs},
-  title = {Provable Agent Infrastructure},
-  year = {2026},
-  publisher = {GitHub},
-  url = {https://github.com/Substr8-Labs/whitepapers}
+@misc{substr8labs2026gam,
+  title={Git-Native Agent Memory: A Verifiable Foundation for AI Cognitive Continuity},
+  author={Heydra, Rudi},
+  year={2026},
+  publisher={Substr8 Labs},
+  url={https://github.com/Substr8-Labs/whitepapers/blob/main/gam/WHITEPAPER.md}
 }
 ```
 
 ---
 
-## 📜 License
+**Substr8 Labs** — Building provable agent infrastructure.
 
-All whitepapers are released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-
-Code examples within papers are released under [MIT License](https://opensource.org/licenses/MIT).
-
----
-
-*This is the intellectual foundation of Substr8 Labs. Every paper represents a step toward provable agent infrastructure.*
+- Website: [substr8labs.com](https://substr8labs.com)
+- GitHub: [@Substr8-Labs](https://github.com/Substr8-Labs)
