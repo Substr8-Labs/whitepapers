@@ -14,7 +14,7 @@
 
 The emergence of autonomous AI agents capable of executing multi-step tasks involving sensitive operations—file manipulation, network communication, code execution, and API interactions—has created a new attack surface in the form of pluggable skill modules. These skills, analogous to browser extensions or mobile applications, extend agent capabilities but are often integrated without systematic security verification.
 
-Contemporary agent frameworks including AutoGPT [Significant Gravitas, 2023], LangChain [Chase, 2022], and the Model Context Protocol (MCP) [Anthropic, 2024] enable rich skill ecosystems. However, security audits reveal alarming vulnerability rates. The ToxicSkills analysis of MCP server implementations [Prazanovsky et al., 2025] identified exploitable vulnerabilities in 13.4% of surveyed public skills, including command injection, path traversal, and privilege escalation vectors. Similarly, the BlueRock security assessment [BlueRock Security, 2024] demonstrated that Server-Side Request Forgery (SSRF) vulnerabilities in agent skills could be weaponized for internal network reconnaissance and credential exfiltration.
+Contemporary agent frameworks including AutoGPT [Significant Gravitas, 2023], LangChain [Chase, 2022], and the Model Context Protocol (MCP) [Anthropic, 2024] enable rich skill ecosystems. However, security audits reveal alarming vulnerability rates. The ToxicSkills analysis of ClawHub skill implementations [Snyk Security Research, 2025] identified exploitable vulnerabilities including command injection, path traversal, and privilege escalation vectors in malicious AI agent skills. Similarly, the BlueRock security assessment [BlueRock Security, 2025] demonstrated that vulnerabilities in MCP servers like Microsoft's Markitdown could be weaponized for internal network reconnaissance and credential exfiltration. The Invariant Labs disclosure [Invariant Labs, 2024] revealed tool poisoning attacks where malicious MCP servers inject hidden instructions into tool descriptions, manipulating agents into executing unintended actions.
 
 The trust model underlying current skill ecosystems—where skills are installed based on reputation or popularity metrics alone—mirrors the early mobile application ecosystem before systematic app store review processes were established. Given that autonomous agents increasingly operate with elevated privileges and access to sensitive user data, this implicit trust model represents an unacceptable security risk.
 
@@ -53,6 +53,8 @@ This paper makes the following contributions:
 The security of LLM-based agents has emerged as a critical research area. Greshake et al. [2023] demonstrated indirect prompt injection attacks where adversarial content in external data sources manipulates agent behavior. Their work established that LLM agents are fundamentally vulnerable to instruction-following exploits when processing untrusted inputs.
 
 The OWASP Top 10 for LLM Applications [OWASP, 2023] codified risks including prompt injection, insecure output handling, and excessive agency—all relevant to skill security. Perez and Ribeiro [2022] further demonstrated that even sophisticated LLMs struggle to distinguish instructions from data, particularly when adversarial content mimics legitimate directive patterns.
+
+Recent disclosures have highlighted specific risks in agent skill ecosystems. Invariant Labs [2024] demonstrated "tool poisoning" attacks where malicious MCP servers embed hidden instructions in tool descriptions that manipulate connected AI agents. The attack bypasses user approval by exploiting the trust boundary between the agent and its tools. Snyk's ToxicSkills research [2025] systematically analyzed ClawHub, discovering that malicious actors were publishing skills designed to exfiltrate data, inject commands, and establish persistent backdoors in agent environments.
 
 ### 2.2 Sandboxing and Isolation
 
@@ -342,9 +344,237 @@ def load_skill(skill_id: str) -> Skill:
 
 ---
 
-## 5. Evaluation
+## 5. Verification Artifact Format
 
-### 5.1 Experimental Setup
+When a skill passes verification, FDAA produces a **Verification Artifact**—a cryptographically-signed attestation that can be validated offline by any agent runtime.
+
+### 5.1 Artifact Structure
+
+```json
+{
+  "artifact_version": "1.0",
+  "skill_id": "example-skill",
+  "skill_version": "1.2.3",
+  "skill_hash": "sha256:a1b2c3d4e5f6...",
+  
+  "verification": {
+    "tier_passed": 4,
+    "timestamp": "2026-02-27T12:00:00Z",
+    "guard_model": "claude-3.5-sonnet-20241022",
+    "sandbox_image": "fdaa-sandbox:v1.2",
+    "pipeline_version": "fdaa-cli-1.0.0"
+  },
+  
+  "policy_tags": [
+    "network:api.example.com",
+    "filesystem:read-only",
+    "no-subprocess",
+    "no-eval"
+  ],
+  
+  "capabilities_declared": ["http-fetch", "json-parse"],
+  "capabilities_observed": ["http-fetch", "json-parse"],
+  
+  "signer": {
+    "public_key": "ed25519:abc123...",
+    "identity": "fdaa-verifier.substr8labs.com"
+  },
+  
+  "signature": "ed25519:xyz789..."
+}
+```
+
+### 5.2 Field Definitions
+
+| Field | Description |
+|-------|-------------|
+| `skill_hash` | SHA-256 of the skill package (Merkle root for multi-file skills) |
+| `tier_passed` | Highest verification tier completed (1-4) |
+| `policy_tags` | Machine-readable security policy constraints |
+| `capabilities_declared` | What the skill manifest claims |
+| `capabilities_observed` | What sandbox monitoring actually detected |
+| `signer.public_key` | Ed25519 public key of the verifying authority |
+| `signature` | Ed25519 signature over all preceding fields (canonical JSON) |
+
+### 5.3 Policy Tag Vocabulary
+
+Policy tags follow a hierarchical namespace:
+
+- `network:<endpoint>` — Allowed network destinations
+- `network:none` — No network access permitted
+- `filesystem:<path>` — Filesystem access scope
+- `filesystem:read-only` — No write access
+- `no-subprocess` — Cannot spawn child processes
+- `no-eval` — No dynamic code execution
+- `time-limited:<seconds>` — Maximum execution time
+- `memory-limited:<mb>` — Maximum memory allocation
+
+### 5.4 Artifact Validation
+
+Agents validate artifacts before loading skills:
+
+```python
+def validate_artifact(artifact: dict, skill_path: Path) -> bool:
+    # 1. Verify signature
+    message = canonical_json(artifact, exclude=['signature'])
+    if not ed25519_verify(artifact['signer']['public_key'],
+                          artifact['signature'], message):
+        return False
+    
+    # 2. Check signer is trusted
+    if artifact['signer']['public_key'] not in TRUSTED_VERIFIERS:
+        return False
+    
+    # 3. Verify skill hash matches
+    computed_hash = compute_skill_hash(skill_path)
+    if computed_hash != artifact['skill_hash']:
+        return False
+    
+    # 4. Check tier meets policy requirements
+    if artifact['verification']['tier_passed'] < REQUIRED_TIER:
+        return False
+    
+    # 5. Check policy tags are compatible
+    for tag in artifact['policy_tags']:
+        if not agent_policy_allows(tag):
+            return False
+    
+    return True
+```
+
+---
+
+## 6. Integration with ACC and DCT
+
+The FDAA Skill Verification Pipeline does not operate in isolation—it forms the **trust foundation** for the Agent Capability Control (ACC) and Delegation Capability Tokens (DCT) frameworks.
+
+### 6.1 Relationship to ACC
+
+ACC requires that skills declare their required permissions. FDAA provides the **verification** that these declarations are accurate:
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                    SKILL INSTALLATION                        │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  1. Skill declares: capabilities = ["http-fetch", "fs:read"]│
+│                           ↓                                  │
+│  2. FDAA verifies: actual behavior matches declaration      │
+│                           ↓                                  │
+│  3. Artifact produced: policy_tags = ["network:*", "fs:ro"] │
+│                           ↓                                  │
+│  4. ACC issues capability: Capability(resource=skill_id,    │
+│                            action=execute,                   │
+│                            constraints=policy_tags)          │
+│                                                              │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Key Integration Points:**
+
+| ACC Concept | FDAA Provides |
+|-------------|---------------|
+| Required permissions | Validated `capabilities_declared` |
+| Granted capabilities | `policy_tags` bound to attestation |
+| Capability constraints | Sandbox-enforced resource limits |
+| Unforgeable token | Ed25519-signed verification artifact |
+
+Without FDAA, ACC must trust skill manifests at face value. With FDAA, ACC capabilities are backed by **empirical verification**.
+
+### 6.2 Relationship to DCT
+
+When an agent delegates a task to a sub-agent, DCT tokens carry the permissions. FDAA artifacts determine **what permissions a skill can receive**:
+
+```
+Agent A (has full capabilities)
+    │
+    │ Spawns sub-agent B with skill "data-analyzer"
+    │
+    ▼
+┌─────────────────────────────────────────────────────┐
+│ DCT Token Creation                                  │
+│                                                     │
+│ 1. Look up skill "data-analyzer" artifact           │
+│ 2. Read policy_tags: ["filesystem:/data/*:read",   │
+│                       "network:none"]               │
+│ 3. Create DCT token with:                           │
+│    - resource: /data/*                              │
+│    - actions: READ only (no WRITE, no DELEGATE)    │
+│    - constraints: network=none                      │
+│    - expiry: task_timeout                           │
+│                                                     │
+│ Sub-agent B cannot exceed skill's verified scope    │
+└─────────────────────────────────────────────────────┘
+```
+
+**Enforcement Chain:**
+
+1. **FDAA** verifies skill behavior → produces `policy_tags`
+2. **ACC** binds skill to capability → respects `policy_tags` as constraints
+3. **DCT** delegates to sub-agent → attenuates based on skill capability
+
+### 6.3 Trust Flow
+
+```
+FDAA Verification (empirical)
+         │
+         │ produces artifact with policy_tags
+         ▼
+ACC Capability (authorization)
+         │
+         │ skill execution requires valid capability
+         ▼
+DCT Delegation (transfer)
+         │
+         │ sub-agents receive attenuated permissions
+         ▼
+Runtime Enforcement (execution)
+         │
+         │ sandbox + syscall monitoring
+         ▼
+Audit Log (accountability)
+```
+
+### 6.4 Example: End-to-End Flow
+
+```python
+# 1. Publisher submits skill
+fdaa.submit("weather-skill", publisher_key)
+
+# 2. FDAA pipeline runs (all 4 tiers)
+artifact = fdaa.verify("weather-skill", tier=4)
+# artifact.policy_tags = ["network:api.weather.gov", "no-filesystem"]
+
+# 3. Agent installs skill
+agent.install("weather-skill", artifact)
+
+# 4. User requests weather
+# ACC checks: does agent have capability for weather-skill?
+capability = acc.lookup(agent_id, "weather-skill")  # ✓
+
+# 5. Agent spawns sub-agent with task
+dct_token = dct.create(
+    issuer=agent.key,
+    subject=subagent.key,
+    resource="weather-skill",
+    actions=EXECUTE,
+    constraints=artifact.policy_tags,  # ← from FDAA
+    expiry=now() + 60
+)
+
+# 6. Sub-agent executes skill
+# Sandbox enforces: only network to api.weather.gov, no filesystem
+result = sandbox.execute("weather-skill", dct_token)
+
+# 7. Full audit trail available
+audit.log(skill="weather-skill", token=dct_token, result=result)
+```
+
+---
+
+## 7. Evaluation
+
+### 7.1 Experimental Setup
 
 We evaluated the FDAA pipeline against the OpenClaw skills ecosystem, comprising 127 publicly available skills spanning categories including filesystem operations, API integrations, data processing, and development tooling.
 
@@ -361,7 +591,7 @@ Inter-rater agreement (Cohen's κ) was 0.87, indicating strong consensus. Disagr
 - Trojan Skills with hidden functionality (n=12)
 - Obfuscated malicious payloads (n=8)
 
-### 5.2 Detection Performance
+### 7.2 Detection Performance
 
 **Table 1: Detection Performance by Tier**
 
@@ -375,7 +605,7 @@ Inter-rater agreement (Cohen's κ) was 0.87, indicating strong consensus. Disagr
 
 False positives decreased after sandbox execution as behavioral evidence clarified ambiguous cases flagged by the Guard Model.
 
-### 5.3 Attack Vector Breakdown
+### 7.3 Attack Vector Breakdown
 
 **Table 2: Detection Rate by Attack Vector**
 
@@ -388,7 +618,7 @@ False positives decreased after sandbox execution as behavioral evidence clarifi
 
 **Findings.** Line Jumping attacks are effectively detected by the Guard Model's specialized prompt. Scope Drift detection requires comparing declared versus actual capabilities—a fundamentally semantic task where LLM judgment excels. Trojan Skills proved most challenging, with the Guard Model detecting only 75%; sandbox behavioral analysis was essential for full detection.
 
-### 5.4 Adversarial Robustness
+### 7.4 Adversarial Robustness
 
 We evaluated Guard Model resilience against adversarial inputs designed to manipulate the judge itself:
 
@@ -400,7 +630,7 @@ We evaluated Guard Model resilience against adversarial inputs designed to manip
 
 **Results.** Without sanitization, 23% of adversarial samples successfully manipulated Guard Model judgment. With our sanitization pipeline, manipulation success dropped to 2.1%, with remaining successes limited to sophisticated multi-stage attacks.
 
-### 5.5 Cost Analysis
+### 7.5 Cost Analysis
 
 **Table 3: Per-Skill Verification Costs**
 
@@ -417,9 +647,9 @@ At scale, the cost of verifying 10,000 skills would be approximately $120—subs
 
 ---
 
-## 6. Discussion
+## 8. Discussion
 
-### 6.1 Security Implications
+### 8.1 Security Implications
 
 The FDAA pipeline demonstrates that defense-in-depth significantly improves agent skill security. Each tier addresses complementary threat classes:
 
@@ -430,7 +660,7 @@ The FDAA pipeline demonstrates that defense-in-depth significantly improves agen
 
 The layered approach mirrors established security practices in operating systems (defense rings), web applications (WAF + application security + database controls), and network security (firewall + IDS + endpoint protection).
 
-### 6.2 Limitations
+### 8.2 Limitations
 
 **Novel Attack Vectors.** Our evaluation focused on known attack patterns. Adversaries developing novel techniques—potentially using adversarial ML to craft inputs specifically targeting our Guard Model—could achieve higher evasion rates.
 
@@ -440,13 +670,13 @@ The layered approach mirrors established security practices in operating systems
 
 **Language Coverage.** The current implementation focuses on Python skills. Extension to other languages (JavaScript, Rust, shell scripts) requires language-specific analysis modules.
 
-### 6.3 Responsible Disclosure
+### 8.3 Responsible Disclosure
 
 During our evaluation of the OpenClaw ecosystem, we identified 17 skills with security issues ranging from unintentional capability exposure to deliberate deceptive behavior. We disclosed findings to the OpenClaw maintainers and skill authors following a 90-day responsible disclosure timeline. As of publication, 14 issues have been resolved; 3 skills were removed from the public registry.
 
 ---
 
-## 7. Future Work
+## 9. Future Work
 
 **Federated Verification.** Distributing Guard Model inference across multiple independent verifiers could improve resilience against single-point manipulation attacks.
 
@@ -458,7 +688,7 @@ During our evaluation of the OpenClaw ecosystem, we identified 17 skills with se
 
 ---
 
-## 8. Conclusion
+## 10. Conclusion
 
 The FDAA Skill Verification Pipeline presents a practical, defense-in-depth approach to securing autonomous agent skill ecosystems. By combining efficient pattern matching, LLM-based semantic analysis, behavioral sandboxing, and cryptographic attestation, the pipeline achieves 96.3% detection accuracy against known attack patterns while maintaining acceptable false positive rates and reasonable verification costs.
 
@@ -476,7 +706,7 @@ We release fdaa-cli as open-source software and encourage the agent development 
 
 [Bai et al., 2022] Y. Bai, S. Kadavath, S. Kundu, et al. "Constitutional AI: Harmlessness from AI Feedback." arXiv:2212.08073, 2022.
 
-[BlueRock Security, 2024] BlueRock Security. "SSRF Vulnerabilities in AI Agent Integrations." BlueRock Security Research Blog, 2024.
+[BlueRock Security, 2025] BlueRock Security. "MCP Furi: Microsoft Markitdown Vulnerabilities." BlueRock Security Research, 2025. https://www.bluerock.io/post/mcp-furi-microsoft-markitdown-vulnerabilities
 
 [Chase, 2022] H. Chase. "LangChain: Building Applications with LLMs." 2022. https://github.com/langchain-ai/langchain
 
@@ -485,6 +715,8 @@ We release fdaa-cli as open-source software and encourage the agent development 
 [Google, 2019] Google. "gVisor: Container Runtime Sandbox." 2019. https://gvisor.dev/
 
 [Greshake et al., 2023] K. Greshake, S. Abdelnabi, S. Mishra, et al. "Not What You've Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection." AISec Workshop, CCS 2023.
+
+[Invariant Labs, 2024] Invariant Labs. "MCP Security Notification: Tool Poisoning Attacks." Invariant Labs Security Blog, 2024. https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks
 
 [Linux Foundation, 2021] Linux Foundation. "Sigstore: Software Signing for Everyone." 2021. https://sigstore.dev/
 
@@ -496,11 +728,11 @@ We release fdaa-cli as open-source software and encourage the agent development 
 
 [Perez and Ribeiro, 2022] F. Perez and I. Ribeiro. "Ignore This Title and HackAPrompt: Exposing Systemic Vulnerabilities of LLMs through a Global Scale Prompt Hacking Competition." EMNLP 2023.
 
-[Prazanovsky et al., 2025] D. Prazanovsky, et al. "ToxicSkills: A Security Analysis of MCP Server Implementations." arXiv preprint, 2025.
-
 [Samuel et al., 2010] J. Samuel, N. Mathewson, J. Cappos, R. Dingledine. "Survivable Key Compromise in Software Update Systems." CCS 2010.
 
 [Significant Gravitas, 2023] Significant Gravitas. "AutoGPT: An Autonomous GPT-4 Experiment." 2023. https://github.com/Significant-Gravitas/AutoGPT
+
+[Snyk Security Research, 2025] D. Prazanovsky, et al. "ToxicSkills: Malicious AI Agent Skills on ClawHub." Snyk Security Research Blog, 2025. https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/
 
 [Zheng et al., 2023] L. Zheng, W.-L. Chiang, Y. Sheng, et al. "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena." NeurIPS 2023.
 
