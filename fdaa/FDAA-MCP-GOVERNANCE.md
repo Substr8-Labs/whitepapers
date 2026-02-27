@@ -39,10 +39,12 @@ This autonomy creates immense value. It also creates immense risk.
 In late 2024, Anthropic released the Model Context Protocol (MCP), an open standard for connecting AI agents to external tools. Built on JSON-RPC 2.0, MCP provides a clean abstraction for tool discovery, invocation, and response handling.
 
 The industry rapidly converged on MCP:
-- **OpenAI** added MCP support to their Agents SDK
+- **OpenAI** added MCP support to their Agents SDK¹
 - **Google** integrated MCP into Gemini and Vertex AI
 - **LangChain** released adapters for seamless MCP integration
 - **100+ MCP servers** now exist for services like GitHub, Slack, Postgres, and more
+
+> ¹ OpenAI Agents SDK MCP Guide: [openai.github.io/openai-agents-js/guides/mcp](https://openai.github.io/openai-agents-js/guides/mcp/) — OpenAI describes MCP as "like a USB-C port for AI applications"
 
 MCP solved the connectivity problem. Agents can now access any MCP-compatible service through a standardized protocol.
 
@@ -82,17 +84,19 @@ The agents are ready. The enterprises are not.
 
 The risk is not theoretical. In January 2026, high-profile vulnerabilities were disclosed in official MCP implementations:
 
-- **CVE-2025-68143**: Anthropic's official Git MCP server — path traversal vulnerability
-- **CVE-2025-68144**: Microsoft MarkItDown — arbitrary file read via SSRF
-- **CVE-2025-68145**: Microsoft MarkItDown — remote code execution
+| CVE | Component | Impact | Severity | Reference |
+|-----|-----------|--------|----------|-----------|
+| CVE-2025-68143 | Anthropic Git MCP | Path traversal, arbitrary file read | High | [NVD](https://nvd.nist.gov/vuln/detail/CVE-2025-68143) |
+| CVE-2025-68144 | Microsoft MarkItDown | SSRF, arbitrary file read | High | [BlueRock Advisory](https://www.bluerock.io/post/mcp-furi-microsoft-markitdown-vulnerabilities) |
+| CVE-2025-68145 | Microsoft MarkItDown | Remote code execution | Critical | [NVD](https://nvd.nist.gov/vuln/detail/CVE-2025-68145) |
 
 These weren't third-party tools. These were **official, enterprise-grade MCP servers** from Anthropic and Microsoft.
 
 Security researchers subsequently audited the broader ecosystem:
 
-> **A significant percentage of MCP servers are vulnerable to Server-Side Request Forgery (SSRF).** *(BlueRock Research, 2025)*
+> **A significant percentage of MCP servers are vulnerable to Server-Side Request Forgery (SSRF).** — [BlueRock Research, 2025](https://www.bluerock.io/post/mcp-furi-microsoft-markitdown-vulnerabilities)
 
-> **13.4% of 3,984 audited skills contained critical-level security issues**, including credential exposure and command injection. *(Invariant Labs ToxicSkills Report, 2025)*
+> **13.4% of 3,984 audited skills contained critical-level security issues**, including credential exposure and command injection. — [Snyk ToxicSkills Report](https://snyk.io/blog/toxicskills-malicious-ai-agent-skills-clawhub/); See also [Invariant Labs MCP Security Notification](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)
 
 The attack taxonomy includes:
 
@@ -111,7 +115,7 @@ These are not edge cases. They are active threats in the current MCP ecosystem.
 
 Regulations are shifting from ethical guidelines to **auditable evidence requirements**.
 
-**EU AI Act (August 2026)**
+**EU AI Act (August 2026)**²
 
 High-risk AI systems must demonstrate:
 - **Traceability** — All decisions must be logged
@@ -119,6 +123,8 @@ High-risk AI systems must demonstrate:
 - **Human Oversight** — Kill switches and approval workflows must exist
 
 Non-compliance penalties: Up to **€35 million or 7% of global revenue**.
+
+> ² EU Artificial Intelligence Act: [eur-lex.europa.eu](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689) — Full text of Regulation (EU) 2024/1689. Article 9 covers risk management requirements; Article 99 defines penalties.
 
 **Autonomy Classifications (UC Berkeley / NIST)**
 
