@@ -1,8 +1,10 @@
 # Git-Native Agent Memory: A Deterministic and Verifiable Memory Layer for Autonomous Agents
 
 **Authors:** Substr8 Labs (Rudi Heydra)
-**Date:** 2026-02-25
-**Version:** 3.3
+**Date:** 2026-02-28
+**Version:** 3.4
+
+> **Version 3.4 Updates:** Introduces Anchor Extraction (replacing naive entity bootstrap), Consensus Boost for RRF fusion, and 5-seed stability testing protocol. Intent Recall@5 restored to 65% after fixing entity bootstrap poisoning. Adds Appendix C: Hybrid Retrieval Lessons.
 
 > **Version 3.3 Updates:** Adds terminology definitions, baseline comparisons, strengthened literature citations, and evaluation scope clarification based on reviewer feedback.
 
@@ -685,3 +687,130 @@ As AI agents are deployed in increasingly autonomous roles, the need for verifia
 - **[Zhang et al., 2026]** Agent Memory Taxonomy: A Systematic Survey of Memory Mechanisms in Autonomous AI Systems. arXiv.org 2026.
 - **[Cohen et al., 2024]** Here Comes The AI Worm: Unleashing Zero-click Worms that Target GenAI-Powered Applications. arXiv:2403.02817.
 - **[Greshake et al., 2023]** Not What You've Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injection. arXiv:2302.12173.
+
+---
+
+## Appendix C: Hybrid Retrieval Lessons (v3a.12)
+
+This appendix documents critical lessons learned during development of GAM's hybrid retrieval pipeline, specifically the v3a.12 iteration that restored Intent Recall@5 to 65%.
+
+### C.1 The Entity Bootstrap Poisoning Problem
+
+**Background:** GAM v3a.2 introduced "entity bootstrap" — extracting entities from BM25 hits to anchor query rewrites for intent-tier queries.
+
+**Naive Implementation:**
+```python
+# BAD: Extracts any capitalized word
+caps = re.findall(r'\b[A-Z][a-z]+\b', content)
+entities.extend(caps)
+```
+
+**Problem:** Sentence starters and common words poisoned rewrites:
+- "Looking at various KPIs. Still evaluating..." 
+- → Extracted "Looking", "Still" as entities
+- → Rewrites became nonsense: "Looking feedback issues concerns"
+
+**Root Cause:** No quality filtering. High-frequency, low-signal tokens treated as entities.
+
+### C.2 Anchor Extraction (The Fix)
+
+Replace "entity bootstrap" with quality-filtered **anchor extraction**.
+
+**Allowed Anchor Types:**
+
+| Type | Examples | Extraction Pattern |
+|------|----------|-------------------|
+| Acronyms | NPS, CAC, NRR, ARPA | `[A-Z]{2,5}` |
+| Product names | TechFlow, DataSync | CamelCase pattern |
+| Dates/deadlines | "Feb 28", "Q1" | Month+day, quarter refs |
+| Domain keyphrases | "onboarding confusion", "churn risk" | Predefined high-signal phrases |
+
+**Hard Filters:**
+- Stopwords + common verbs/adverbs
+- Sentence starters ("Looking", "Still", "Some", "Attended", "Discussed")
+- Tokens < 3 characters
+- Tokens appearing in >15% of documents (high document frequency)
+
+**Implementation:**
+```python
+class AnchorExtractor:
+    def __init__(self, min_df=0.001, max_df=0.15):
+        # Anchors must have mid-range document frequency
+        # Not too common (noise), not too rare (overfitting)
+        
+    def extract(self, bm25_results, top_k=4):
+        # Quality-filtered extraction
+        # Returns only high-signal anchors
+```
+
+### C.3 Consensus Boost
+
+**Observation:** When a candidate document appears in multiple rewrite top-10 lists, it's more likely relevant.
+
+**Implementation:**
+```python
+# In RRF fusion
+for key in scores:
+    if list_membership[key] >= 2:  # Appears in 2+ top-10 lists
+        scores[key] *= 1.15  # Consensus boost
+```
+
+**Benefit:** Improves ranking reliability without requiring expensive cross-encoders.
+
+### C.4 Stability Testing Protocol
+
+To ensure retrieval improvements are real (not variance), we introduced a 5-seed stability protocol:
+
+**Requirements:**
+1. **Pin everything per run:**
+   - Corpus snapshot/version
+   - Needle pack version
+   - Embedding model/version
+   - All hyperparameters (k, caps, weights)
+
+2. **Run 5-seed stability:**
+   - Same benchmark, 5 different random seeds
+   - Report mean Recall@5 and standard deviation
+   - Target: std dev < 3-5 percentage points
+
+3. **Per-tier reporting:**
+   - Keep keyword/semantic/intent tiers separate
+   - Improvements in one tier shouldn't hide regressions in others
+
+**Command:**
+```bash
+python run_benchmark.py stability \
+  --seeds 42,123,456,789,1337 \
+  --scale 5k \
+  --anchor-bootstrap \
+  --output results/v3a12-stability/
+```
+
+### C.5 v3a.12 Retrieval Architecture
+
+```
+Query → Intent Detection → Task Type Classification
+                              ↓
+                    Anchor Extraction (quality-filtered)
+                              ↓
+                    Rewrite Generation (template-based)
+                              ↓
+              ┌───────────────┼───────────────┐
+              ↓               ↓               ↓
+         Baseline         Rewrite 1       Rewrite N
+         (BM25+Vec)       (BM25+Vec)      (BM25+Vec)
+              ↓               ↓               ↓
+              └───────────────┼───────────────┘
+                              ↓
+                    Weighted RRF Fusion (k=15)
+                              ↓
+                    Consensus Boost (2+ lists → 1.15x)
+                              ↓
+                         Final Ranking
+```
+
+### C.6 Key Insight
+
+> "Hybrid retrieval is not just 'vector search'. Controlled rewrite + fusion + gating materially improves intent-tier recall. Common failure mode: naive entity extraction can poison rewrites; **anchor quality matters**."
+
+This finding validates GAM's approach of structured, typed hints over naive extraction methods.
