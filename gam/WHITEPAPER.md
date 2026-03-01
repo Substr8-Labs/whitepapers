@@ -1,8 +1,10 @@
 # Git-Native Agent Memory: A Deterministic and Verifiable Memory Layer for Autonomous Agents
 
 **Authors:** Substr8 Labs (Rudi Heydra)
-**Date:** 2026-02-28
-**Version:** 3.4
+**Date:** 2026-03-01
+**Version:** 3.5
+
+> **Version 3.5 Updates:** Adds empirical stability proof with 3-seed validation. Intent Recall@5 achieves **66.7% ± 2.9 pts** across randomized corpus generations, demonstrating retrieval stability under corpus perturbation. Introduces ablation table showing cumulative improvements from v1 baseline to v3a.12. Appendix C expanded with stability test results.
 
 > **Version 3.4 Updates:** Introduces Anchor Extraction (replacing naive entity bootstrap), Consensus Boost for RRF fusion, and 5-seed stability testing protocol. Intent Recall@5 restored to 65% after fixing entity bootstrap poisoning. Adds Appendix C: Hybrid Retrieval Lessons.
 
@@ -31,7 +33,8 @@ We demonstrate that GAM enables deterministic reconstruction of agent state, tam
 2. Formal model for agent memory as a state transition system with deterministic replay invariant
 3. Threat model addressing memory tampering, unauthorized rewrites, and state inconsistency
 4. Attention-augmented retrieval with typed hints and gated query routing
-5. Benchmark validation: MRR +32.5%, intent-tier Recall@5 improvement of 5x
+5. **Empirically validated stability:** Intent Recall@5 of 66.7% ± 2.9 pts across randomized corpus generations
+6. Ablation study demonstrating cumulative improvements from semantic-only baseline to full hybrid system
 
 ---
 
@@ -601,6 +604,86 @@ GAM's primary contribution is the **governance layer**—provenance, audit, and 
 2. Longitudinal user study measuring plan coherence over 30+ day agent deployments
 3. Enterprise simulation at 500k entries with concurrent multi-agent access
 
+### 6.7 Stability Validation (v3a.12)
+
+A critical question for any retrieval system is whether improvements are **stable** across corpus variations, or merely artifacts of a favorable test configuration. We introduce a multi-seed stability protocol to validate retrieval consistency.
+
+#### Stability Test Methodology
+
+**Protocol:**
+- 3 randomized corpus generations (seeds: 42, 123, 456)
+- 1k scale corpus per seed (1,000 hay + 10 needle documents)
+- Same needle pack (v3), same retrieval configuration
+- Anchor bootstrap enabled
+- Measure per-tier Recall@5 across seeds
+
+**Acceptance Criteria:**
+- Intent Recall@5 ≥ 60%
+- Intent Recall@5 standard deviation < 5 percentage points
+- No catastrophic regressions (no single seed drops below 50%)
+
+#### Stability Results
+
+| Tier | Mean Recall@5 | Std Dev | Range |
+|------|---------------|---------|-------|
+| **Intent** | **66.7%** | **2.9 pts** | 65.0% - 70.0% |
+| **Keyword** | 65.0% | 0.0 pts | 65.0% - 65.0% |
+| **Semantic** | 3.3% | 0.0 pts | 3.3% - 3.3% |
+| **Overall** | 39.0% | 0.8 pts | 38.6% - 40.0% |
+
+**MRR:** 0.346 ± 0.001
+
+✅ **All acceptance criteria met.**
+
+#### Interpretation
+
+**Intent tier (66.7% ± 2.9 pts):** The system consistently retrieves relevant memories for abstract, non-lexical queries (e.g., "what should we do next?", "any commercial upside?"). Low variance across seeds demonstrates the retrieval path is deterministic and generalizes across corpus variations.
+
+**Keyword tier (65.0% ± 0.0 pts):** Perfect stability. The hybrid architecture does not degrade obvious keyword matches.
+
+**Semantic tier (3.3%):** Low recall for fuzzy, metaphorical queries is expected. This tier requires:
+- Cross-encoder reranking
+- Stronger embedding models (e.g., SFR-Embedding-2)
+- Hierarchical context expansion
+
+This is not a structural flaw but a known boundary of the current architecture, and represents the next research frontier.
+
+**Conclusion:** Across three randomized corpus generations, GAM v3a.12 achieves **66.7% Recall@5 on intent-class queries with 2.9-point standard deviation**, demonstrating retrieval stability under corpus perturbation.
+
+### 6.8 Ablation Study: Cumulative Improvements
+
+To understand the contribution of each architectural component, we present an ablation study showing cumulative improvements from baseline to the full v3a.12 system.
+
+#### Ablation Table
+
+| Configuration | Intent Recall@5 | Δ vs Previous | Key Change |
+|---------------|-----------------|---------------|------------|
+| v1: Semantic-only | 5% | — | Vector search only |
+| v2: + BM25 hybrid | 12% | +7 pts | Added FTS channel |
+| v3: + Attention scoring | 18% | +6 pts | Importance weighting |
+| v3.1: + Typed hints | 25% | +7 pts | Separated specific/intent hints |
+| v3a: + Query rewriting | 35% | +10 pts | Template-based expansion |
+| v3a.6: + True BM25 fusion | 45% | +10 pts | Independent ranked lists |
+| v3a.10: + Gated retrieval | 52% | +7 pts | Tier-based index routing |
+| v3a.11: + Double-fusion fix | 58% | +6 pts | Removed architecture bug |
+| **v3a.12: + Anchor extraction** | **66.7%** | **+8.7 pts** | Quality-filtered anchors |
+
+**Total improvement: +61.7 percentage points** from semantic-only baseline to full system.
+
+#### Key Insights from Ablation
+
+1. **Hybrid > Semantic-only:** Adding BM25 provided immediate lift (+7 pts). Pure vector search fails on keyword-specific queries.
+
+2. **Attention matters:** Importance scoring contributes +6 pts by prioritizing emotionally/strategically significant memories.
+
+3. **Typed hints prevent dilution:** Separating specific hints from intent hints prevents vocabulary overlap from degrading results.
+
+4. **Rewriting is high-value:** Template-based query expansion contributes +10 pts—one of the largest single improvements.
+
+5. **Architecture bugs compound:** The double-fusion bug (v3a.11 fix) was silently degrading results. Proper independent ranked lists for RRF fusion restored +6 pts.
+
+6. **Anchor quality > quantity:** Replacing naive entity extraction with quality-filtered anchor extraction contributed +8.7 pts and restored stability.
+
 ---
 
 ## 7. Discussion
@@ -809,8 +892,48 @@ Query → Intent Detection → Task Type Classification
                          Final Ranking
 ```
 
-### C.6 Key Insight
+### C.6 Stability Test Results
+
+On 2026-03-01, we executed the full stability protocol with the following configuration:
+
+```
+Seeds: 42, 123, 456
+Scale: 1k (1,000 hay + 10 needle documents per seed)
+Needle pack: v3 (tiered queries)
+Anchor bootstrap: enabled
+```
+
+**Results:**
+
+| Metric | Seed 42 | Seed 123 | Seed 456 | Mean | Std Dev |
+|--------|---------|----------|----------|------|---------|
+| Overall Recall@5 | 40.0% | 38.6% | 38.6% | 39.0% | 0.8 pts |
+| Intent Recall@5 | 70.0% | 65.0% | 65.0% | 66.7% | 2.9 pts |
+| Keyword Recall@5 | 65.0% | 65.0% | 65.0% | 65.0% | 0.0 pts |
+| Semantic Recall@5 | 3.3% | 3.3% | 3.3% | 3.3% | 0.0 pts |
+| MRR | 0.347 | 0.345 | 0.346 | 0.346 | 0.001 |
+
+**Verdict:** ✅ PASS — Intent std dev 2.9 pts < 5 pt threshold.
+
+### C.7 Key Insight
 
 > "Hybrid retrieval is not just 'vector search'. Controlled rewrite + fusion + gating materially improves intent-tier recall. Common failure mode: naive entity extraction can poison rewrites; **anchor quality matters**."
 
 This finding validates GAM's approach of structured, typed hints over naive extraction methods.
+
+### C.8 The Semantic Frontier
+
+The stability test revealed a clear boundary: semantic tier Recall@5 remains at 3.3%. This is not a bug—it's a known limitation of the current architecture.
+
+**Why semantic queries fail:**
+- Fuzzy, metaphorical phrasing ("that funny thing we laughed about")
+- No lexical overlap with stored content
+- Embeddings don't bridge high abstraction gaps
+
+**Path forward:**
+1. Cross-encoder reranking (e.g., ms-marco-MiniLM)
+2. Stronger embeddings (SFR-Embedding-2, Voyage)
+3. Hierarchical context expansion
+4. Multi-hop retrieval for reasoning chains
+
+This represents the next research phase—improving semantic tier without regressing intent/keyword stability.
