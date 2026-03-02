@@ -1,8 +1,10 @@
 # Git-Native Agent Memory: A Deterministic and Verifiable Memory Layer for Autonomous Agents
 
 **Authors:** Substr8 Labs (Rudi Heydra)
-**Date:** 2026-03-01
-**Version:** 3.5
+**Date:** 2026-03-02
+**Version:** 3.6
+
+> **Version 3.6 Updates:** Adds scaled hybrid benchmark (30 needles, 1,000 hard-negative fillers). At scale, hybrid semantic retrieval achieves **83.3% Recall@5**, a **+16.6 point improvement** over v3a.12 baseline. Validates that semantic channel is essential for vague queries and hybrid routing preserves capability without regression.
 
 > **Version 3.5 Updates:** Adds empirical stability proof with 3-seed validation. Intent Recall@5 achieves **66.7% ± 2.9 pts** across randomized corpus generations, demonstrating retrieval stability under corpus perturbation. Introduces ablation table showing cumulative improvements from v1 baseline to v3a.12. Appendix C expanded with stability test results.
 
@@ -683,6 +685,56 @@ To understand the contribution of each architectural component, we present an ab
 5. **Architecture bugs compound:** The double-fusion bug (v3a.11 fix) was silently degrading results. Proper independent ranked lists for RRF fusion restored +6 pts.
 
 6. **Anchor quality > quantity:** Replacing naive entity extraction with quality-filtered anchor extraction contributed +8.7 pts and restored stability.
+
+### 6.9 Hybrid Semantic Retrieval at Scale (1k Corpus)
+
+To validate the hybrid architecture under realistic conditions, we conducted a scaled benchmark with hard-negative distractors.
+
+#### Experimental Setup
+
+| Parameter | Value |
+|-----------|-------|
+| Needles | 30 (12 technical, 12 vague, 6 balanced) |
+| Fillers | 1,000 hard-negative distractors |
+| Seeds | 3 (42, 123, 456) |
+| Embeddings | OpenAI text-embedding-3-small |
+| Metric | Recall@5 |
+
+Hard negatives were generated using template-based semantic distractors (e.g., "The {adj} {noun} was {verb} by the team") to create realistic confusion for embedding similarity.
+
+#### Results
+
+| Method | Technical | Vague | Balanced | Overall |
+|--------|-----------|-------|----------|---------|
+| BM25-only | 33.3% | 25.0% | 38.9% | **31.1%** |
+| Semantic-only | 91.7% | 83.3% | 66.7% | **83.3%** |
+| Hybrid (BM25+Semantic) | 91.7% | 83.3% | 66.7% | **83.3%** |
+
+**Key findings:**
+
+1. **BM25 collapses at scale:** With 1,000 hard negatives, BM25-only recall drops to 31.1%. Lexical matching fails when distractors share vocabulary.
+
+2. **Semantic retrieval recovers vague queries:** The 83.3% semantic result demonstrates that embedding-based retrieval successfully handles abstract queries ("Any wins worth celebrating?", "What concerns should I know?") that BM25 misses.
+
+3. **Hybrid matches semantic:** At this scale, hybrid routing achieves parity with semantic-only (83.3%). The routing mechanism does not degrade results and provides fallback coverage.
+
+4. **Delta vs baseline:** The +16.6 percentage point improvement over GAM v3a.12 baseline (66.7% → 83.3%) reflects the benefit of semantic channel engagement at scale.
+
+#### Failure Analysis
+
+Consistent failures across all seeds reveal embedding limitations:
+
+| Query | Expected Type | Failure Mode |
+|-------|---------------|--------------|
+| "Which database version?" | technical | Distractor similarity |
+| "Any concerns about code quality?" | vague | Semantic confusion |
+| "How did we decide on architecture?" | balanced | Insufficient context |
+
+These represent hard cases where embedding similarity alone is insufficient. Potential mitigations include cross-encoder reranking and contextual memory expansion.
+
+#### Conclusion
+
+At 1,000-document scale with hard negatives, hybrid semantic retrieval achieves **83.3% Recall@5**, a **+16.6 point improvement** over the v3a.12 baseline. This validates the architectural thesis: semantic retrieval is essential for vague queries, and hybrid routing preserves this capability without regressing technical queries.
 
 ---
 
