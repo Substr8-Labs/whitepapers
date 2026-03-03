@@ -130,6 +130,12 @@ Recent surveys describe memory as spanning **multiple forms**—token-level, lat
 
 **Where GAM fits:** It's essentially a **persistent memory ledger** with strong correctness guarantees, enabling agents to trust that what they remember *is exactly what happened*.
 
+#### Extraction & Dual-Store Systems (Mem0)
+
+Recent systems like Mem0 have introduced automated extraction and dual-store semantic recall layers for AI agents. These systems focus on convenience—automatically capturing memories from conversations and enabling semantic retrieval without manual tagging.
+
+**Our work extends this approach** by layering a Git-native, cryptographically verifiable memory substrate and a reproducible hybrid retrieval benchmark methodology. This ensures that our memory layer not only recalls effectively but also provides auditable, tamper-evident records of what is remembered.
+
 ### 2.3 GAM's Position in the Memory Ecosystem
 
 The memory research stack can be visualized as:
