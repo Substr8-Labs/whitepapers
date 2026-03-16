@@ -8,6 +8,7 @@
 
 | Paper | Version | Description |
 |-------|---------|-------------|
+| [**RunProof**](runproof/the-runproof-protocol-verifiable-agentic-execution.md) | v0.1 | **NEW** Verifiable Agentic Execution and Cryptographic Provenance |
 | [**FDAA**](fdaa/WHITEPAPER.md) | v1.3 | File-Driven Agent Architecture — execution model, workspaces, skills |
 | [**FDAA + MCP Governance**](fdaa/FDAA-MCP-GOVERNANCE.md) | v1.0 | Governing MCP servers with cryptographic audit trails |
 | [**Skill Verification**](skill-verification/WHITEPAPER.md) | v2.0 | Trust pipeline — how skills are verified before execution |

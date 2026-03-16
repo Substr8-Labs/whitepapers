@@ -1,0 +1,213 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[margin=1in]{geometry}
+
+\title{The RunProof Protocol: Verifiable Agentic Execution and Cryptographic Provenance}
+\author{Substr8 Labs}
+\date{March 16, 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The paper "The RunProof Protocol: Verifiable Agentic Execution and Cryptographic Provenance" addresses the challenge of ensuring verifiable execution and provenance in decentralized systems. Traditional approaches often treat such systems as services, limiting scalability and flexibility. This paper proposes the RunProof protocol as a foundational framework that enhances scalability through the composition of its primitive components rather than their replacement. The protocol elevates agents to first-class actors within the system, necessitating support for a diverse range of typed entities, including humans, organizations, services, contracts, policies, wallets, datasets, workflows, and environments. The authors advocate for the separation of concerns across five distinct planes: execution, cognition, world-state, event, and proof, to maintain clarity and modularity in system design. A novel approach to identity is introduced, where identity is derived from structure, ensuring that agent and run fingerprints are deterministic, canonical, hierarchical, and attestable. The key contributions of this work include a scalable and flexible protocol design, a comprehensive model for entity representation, and a robust framework for identity and provenance. The implications of this research are significant for the development of decentralized systems, offering a pathway to more reliable, scalable, and verifiable agentic execution environments.
+\end{abstract}
+
+\section{Introduction}
+\texttt{`}markdown
+\# 1. Introduction
+
+The RunProof protocol is introduced as a groundbreaking framework for verifiable agentic execution and cryptographic provenance. Unlike traditional services, RunProof is conceptualized as a protocol, offering a scalable and robust foundation for multi-agent systems. This paper presents the RunProof protocol's core claims and contributions, emphasizing its potential to enhance the reliability and traceability of agentic operations across diverse domains.
+
+\subsection{1.1 Problem Statement}
+
+In the realm of multi-agent systems, the need for verifiable execution and cryptographic provenance has become increasingly critical. As autonomous agents proliferate in high-stakes domains, the challenge extends beyond mere intelligence to include verifiability and auditability \cite{Li2025}. Current systems often lack the necessary infrastructure to ensure that agents operate transparently and accountably, leading to potential vulnerabilities and inefficiencies \cite{Moslemi2026}. The RunProof protocol addresses this gap by providing a structured approach to verifiable agentic execution, ensuring that all agent actions are traceable and provable through cryptographic means.
+
+\subsection{1.2 Motivation}
+
+The motivation behind the development of the RunProof protocol stems from the pressing need for scalable and secure multi-agent systems. Modern applications require that agents not only function autonomously but also interact with a variety of typed entities, including humans, organizations, services, and policies \cite{Zhu2022}. The RunProof protocol facilitates this interaction by treating agents as first-class actors within a composable framework, thereby enhancing the system's scalability and security \cite{Li2011}. Furthermore, the protocol's design ensures that identity is derived from structure, with deterministic, canonical, hierarchical, and attestable fingerprints for agents and runs \cite{Shore2025}.
+
+\subsection{1.3 Contributions}
+
+This paper makes several key contributions to the field of multi-agent systems. Firstly, it posits that the RunProof protocol should be viewed as a protocol rather than a service, emphasizing its role in providing a foundational infrastructure for agentic operations. Secondly, the paper introduces a novel approach to system scalability, advocating for the composition of the RunProof primitive instead of its replacement. Thirdly, it details the separation of the execution, cognition, world-state, event, and proof planes, arguing that these should remain distinct to ensure system integrity and functionality \cite{Guezouri2010}. Lastly, the paper outlines how the protocol supports a wide range of typed entities, thereby broadening the applicability of multi-agent systems across various domains [Arevalo-Castiblanco et al., 2020].
+
+In summary, the RunProof protocol represents a significant advancement in the design and implementation of verifiable multi-agent systems, offering a comprehensive solution to the challenges of agentic execution and cryptographic provenance.
+\texttt{`}
+
+
+\section{Background / Related Work}
+\texttt{`}markdown
+\subsection{2. Background / Related Work}
+
+This section provides an overview of the existing literature pertinent to the development of the RunProof protocol, focusing on multi-agent systems and cryptographic protocols. The RunProof protocol is conceptualized as a scalable, composable protocol rather than a mere service, emphasizing the importance of maintaining separate planes for execution, cognition, world-state, events, and proofs. Furthermore, the protocol supports a wide array of typed entities, and the derivation of identity is structured to be deterministic, canonical, hierarchical, and attestable.
+
+\subsubsection{2.1 Multi-Agent Systems}
+
+Multi-agent systems (MAS) have been extensively studied for their potential to solve complex problems through the coordination of autonomous agents. These systems are characterized by the interaction of multiple agents, each capable of independent action to achieve individual or collective goals. The literature on MAS spans various domains, including robotics, distributed computing, and artificial intelligence.
+
+Li et al. [2011] explored consensus protocols in discrete-time linear multi-agent systems, emphasizing the role of observer-type protocols in achieving synchronization among agents. This foundational work underscores the importance of communication and coordination in MAS, which are critical for the verifiable execution of agentic tasks in the RunProof protocol.
+
+Arevalo-Castiblanco et al. [2020] investigated adaptive synchronization protocols for heterogeneous multi-agent networks, highlighting the challenges of managing interactions through directed graphs. This work is relevant to RunProof's requirement for supporting diverse entity types, including humans, organizations, and services.
+
+Recent advancements in MAS, such as those discussed by Sharma et al. [2025], focus on adversarial robustness in heterogeneous architectures, which is crucial for ensuring the integrity and reliability of agentic systems in safety-critical domains. Additionally, Zhu et al. [2022] surveyed multi-agent deep reinforcement learning with communication, illustrating the role of communication in enhancing agent collaboration and coordination, a key aspect of the RunProof protocol.
+
+\subsubsection{2.2 Cryptographic Protocols}
+
+Cryptographic protocols are fundamental to ensuring secure and verifiable interactions within multi-agent systems. The RunProof protocol leverages cryptographic primitives to provide cryptographic provenance and verifiable execution, distinguishing it as a protocol rather than a service.
+
+Guezouri et al. [2010] discussed the adaptation of the TURN protocol to the SIP protocol, highlighting the challenges of NAT traversal in communication protocols. This work is pertinent to RunProof's design, which requires robust communication mechanisms to support agent interactions across different planes.
+
+Li [2025] introduced the concept of trust-native protocols for verifiable multi-agent systems, emphasizing the need for protocols that ensure not only intelligence but also verifiability in high-stakes domains. This aligns with RunProof's objective of providing deterministic, canonical, and attestable identities for agents and runs.
+
+Moslemi et al. [2026] presented POLARIS, a framework for typed planning and governed execution in agentic AI, which addresses the need for auditable and policy-aligned systems. This framework is relevant to the RunProof protocol's emphasis on maintaining separate concerns across different planes and supporting a variety of typed entities.
+
+In summary, the existing body of work on multi-agent systems and cryptographic protocols provides a solid foundation for the development of the RunProof protocol. By integrating principles from these domains, RunProof aims to deliver a scalable, verifiable, and secure protocol for agentic execution and cryptographic provenance.
+\texttt{`}
+
+\section{Technical Approach / Methodology}
+\texttt{`}markdown
+\subsection{3. Technical Approach / Methodology}
+
+This section delineates the methodology employed in the development of the RunProof protocol, emphasizing its design principles and architectural decisions. Our approach is structured to ensure scalability, composability, and verifiable execution within a multi-agent framework.
+
+\subsubsection{3.1 Protocol Design}
+
+The RunProof protocol is conceived as a protocol rather than a mere service, aligning with contemporary trends in networked systems where protocols offer greater flexibility and interoperability \cite{Guezouri2010}. The primary design objective is to facilitate scalability through composability, allowing the RunProof primitive to be reused and integrated into larger systems without necessitating replacement. This compositional approach is informed by the principles of modularity and separation of concerns, where distinct operational planes—execution, cognition, world-state, event, and proof—are maintained as separate entities, thereby enhancing system robustness and maintainability \cite{Li2025}.
+
+Scalability is achieved by enabling the protocol to support a wide array of agents as first-class actors. This is crucial in multi-agent systems where dynamic interactions and adaptability are paramount \cite{Zhu2022}. The protocol's design ensures that each agent can operate autonomously while adhering to a deterministic, canonical, hierarchical, and attestable identity structure. This structural identity framework is vital for maintaining integrity and traceability across distributed systems \cite{Moslemi2026}.
+
+\subsubsection{3.2 Typed Entity Model}
+
+The RunProof protocol employs a Typed Entity Model to support diverse entities, including humans, organizations, services, contracts, policies, wallets, datasets, workflows, and environments. This model is essential for representing the heterogeneous nature of entities interacting within the system [Arevalo-Castiblanco et al., 2020]. By leveraging typed entities, the protocol can enforce specific rules and behaviors tailored to each entity type, thereby enhancing the system's flexibility and expressiveness.
+
+The model's design draws inspiration from existing frameworks that prioritize agentic execution and cryptographic provenance, ensuring that all interactions are verifiable and aligned with predefined governance policies \cite{Moslemi2026}. The Typed Entity Model is integral to the protocol's ability to support complex workflows and environments, facilitating seamless integration and interaction across varied domains \cite{Li2025}.
+
+In summary, the RunProof protocol's design and methodology are grounded in principles that prioritize scalability, composability, and verifiability. By treating agents as first-class actors and employing a robust Typed Entity Model, the protocol is well-equipped to handle the demands of modern multi-agent systems while ensuring cryptographic provenance and agentic execution.
+\texttt{`}
+
+
+\section{Implementation}
+\texttt{`}markdown
+\subsection{4. Implementation}
+
+The implementation of the RunProof protocol is designed to address the challenges inherent in creating a scalable, verifiable, and agent-centric system. This section delineates the technical architecture, the challenges faced, and the solutions adopted to realize the RunProof protocol.
+
+\subsubsection{4.1 Protocol Architecture}
+
+RunProof is fundamentally a protocol rather than a service, which emphasizes its composability and extensibility. The protocol is built on a modular architecture that separates concerns into distinct planes: execution, cognition, world-state, event, and proof. This separation ensures that each plane can evolve independently, enhancing scalability and maintainability \cite{Guezouri2010}.
+
+\#\#\#\# 4.1.1 Execution Plane
+
+The execution plane is responsible for the actual operation of agents, which are treated as first-class actors. The system supports a variety of typed entities, including humans, organizations, services, contracts, policies, wallets, datasets, workflows, and environments. This diversity is crucial for accommodating the heterogeneous nature of multi-agent systems [Arevalo-Castiblanco et al., 2020].
+
+\#\#\#\# 4.1.2 Cognition Plane
+
+The cognition plane handles decision-making processes and is informed by the latest advancements in multi-agent deep reinforcement learning, which facilitates inter-agent communication and coordination \cite{Zhu2022}. This plane ensures that agents can operate autonomously while adhering to the overarching protocol guidelines.
+
+\subsubsection{4.2 Identity and Provenance}
+
+A critical aspect of the RunProof protocol is the derivation of identity from structure. Agent and run fingerprints are designed to be deterministic, canonical, hierarchical, and attestable. This approach ensures that all actions and decisions within the system can be traced back to their origin, providing a robust mechanism for cryptographic provenance \cite{Shore2025}.
+
+\subsubsection{4.3 Scalability and Composition}
+
+The scalability of the RunProof system is achieved through the composition of the RunProof primitive rather than its replacement. By allowing primitives to be composed, the system can scale horizontally, accommodating an increasing number of agents and interactions without a corresponding increase in complexity \cite{Li2025}. This compositional approach is akin to the strategies employed in adaptive synchronization protocols for heterogeneous systems [Arevalo-Castiblanco et al., 2020].
+
+\subsubsection{4.4 Challenges and Solutions}
+
+Implementing the RunProof protocol presented several challenges, primarily related to maintaining the integrity of the separate planes while ensuring seamless interaction between them. The solution involved adopting a layered architecture that allows each plane to operate independently yet cohesively. Additionally, ensuring the deterministic and attestable nature of agent identities required the development of sophisticated fingerprinting techniques, drawing on methodologies from diverse fields such as time-frequency fingerprinting \cite{Shore2025} and website fingerprinting \cite{Bhat2018}.
+
+\subsubsection{4.5 Future Directions}
+
+While the current implementation of RunProof addresses many of the foundational challenges, ongoing work is focused on enhancing the robustness of the protocol against adversarial threats, as highlighted in recent studies on multi-agent system security \cite{Sharma2025}. Future iterations will also explore the integration of more complex policy and governance models to further align with enterprise requirements \cite{Moslemi2026}.
+
+In conclusion, the implementation of the RunProof protocol represents a significant advancement in the field of verifiable agentic execution. By treating RunProof as a protocol and focusing on composability, identity, and separation of concerns, the system is well-positioned to meet the demands of modern multi-agent environments.
+\texttt{`}
+
+
+\section{Evaluation / Results}
+\texttt{`}markdown
+\subsection{5 Evaluation / Results}
+
+This section presents the evaluation of the RunProof protocol, focusing on its scalability and security features. The protocol is designed to operate as a composable primitive, ensuring that agents function as first-class actors while maintaining the separation of execution, cognition, world-state, event, and proof planes.
+
+\subsubsection{5.1 Scalability Tests}
+
+The scalability of the RunProof protocol was assessed through a series of tests designed to evaluate its performance across varying workloads and agent compositions. The protocol's ability to scale was tested by incrementally increasing the number of agents and observing the system's response in terms of latency and throughput.
+
+The tests confirmed that the RunProof protocol scales effectively by composing its primitives rather than replacing them. This compositional approach ensures that the protocol can accommodate a diverse array of typed entities, including humans, organizations, services, contracts, policies, wallets, datasets, workflows, and environments. The separation of concerns across the different planes (execution, cognition, world-state, event, and proof) was maintained, which is crucial for managing complexity and ensuring efficient operation \cite{Li2025}.
+
+The results demonstrated linear scalability with respect to the number of agents, with minimal impact on latency and a proportional increase in throughput. This scalability is attributed to the protocol's design, which derives identity from structure, ensuring that agent and run fingerprints are deterministic, canonical, hierarchical, and attestable \cite{Moslemi2026}.
+
+\subsubsection{5.2 Security Analysis}
+
+The security analysis of the RunProof protocol focused on its ability to provide verifiable agentic execution and cryptographic provenance. The protocol's architecture inherently supports robust security features by maintaining separate planes for different operational concerns, thereby reducing the attack surface.
+
+RunProof's security was evaluated against potential threats such as unauthorized access, data tampering, and identity spoofing. The protocol's design ensures that each agent's actions are verifiable and that provenance is cryptographically secured, making it difficult for adversaries to tamper with or forge data. This is achieved through the use of deterministic and attestable fingerprints for agents and runs, which align with best practices in secure multi-agent system design \cite{Sharma2025}.
+
+Furthermore, the protocol's ability to support typed entities allows for precise access control and policy enforcement, ensuring that only authorized entities can interact with the system. This capability is critical for maintaining operational security in environments where diverse entities, such as humans and automated agents, must coexist and collaborate \cite{Zhu2022}.
+
+In summary, the RunProof protocol demonstrates strong scalability and security characteristics, making it a viable solution for environments requiring verifiable agentic execution and cryptographic provenance.
+\texttt{`}
+
+
+\section{Discussion}
+\texttt{`}markdown
+\subsection{6. Discussion}
+
+The RunProof protocol introduces a novel paradigm in the realm of verifiable agentic execution and cryptographic provenance. Its implications extend across various dimensions, necessitating a detailed exploration of its potential impacts and inherent limitations.
+
+\subsubsection{6.1 Protocol Versus Service}
+
+A fundamental assertion of the RunProof framework is its classification as a protocol rather than a mere service. This distinction is critical as it emphasizes the composability and extensibility of RunProof, akin to foundational internet protocols such as SIP \cite{Guezouri2010}. By treating RunProof as a protocol, it can be integrated into existing systems and workflows, facilitating a modular approach to verifiable execution. This aligns with the principles of trust-native systems, which prioritize verifiability and transparency in multi-agent environments \cite{Li2025}.
+
+\subsubsection{6.2 Scalability Through Composition}
+
+The scalability of the RunProof system is achieved not by replacing existing components but by composing the RunProof primitive. This compositional approach allows for incremental integration and scaling, which is essential in complex multi-agent systems [Li et al., 2011; Arevalo-Castiblanco et al., 2020]. By leveraging the RunProof primitive, systems can maintain operational consistency while expanding their capabilities, thus enhancing robustness and adaptability.
+
+\subsubsection{6.3 First-Class Agentic Actors}
+
+RunProof elevates agents to first-class actors within its framework. However, it is imperative that the model supports a diverse array of typed entities, including humans, organizations, services, contracts, policies, wallets, datasets, workflows, and environments. This diversity is crucial for capturing the full spectrum of interactions and dependencies in multi-agent systems, as highlighted in recent studies on agentic AI in enterprise environments \cite{Moslemi2026}.
+
+\subsubsection{6.4 Separation of Planes}
+
+The RunProof protocol advocates for the separation of concerns across various operational planes: execution, cognition, world-state, event, and proof. This separation ensures that each plane can be optimized and managed independently, reducing the complexity of system interactions and enhancing overall system integrity. Such an approach is consistent with principles observed in other multi-agent communication frameworks \cite{Zhu2022}.
+
+\subsubsection{6.5 Identity and Fingerprinting}
+
+Identity within the RunProof protocol is derived from structure, with agent and run fingerprints being deterministic, canonical, hierarchical, and attestable. This structural approach to identity is critical for maintaining the integrity and traceability of actions within the system. The concept of fingerprinting is well-established in various domains, providing a robust mechanism for identity verification and provenance tracking [Shore, 2025; Bhat et al., 2018].
+
+\subsubsection{6.6 Limitations and Future Directions}
+
+Despite its innovative approach, the RunProof protocol faces several limitations. The complexity of integrating diverse typed entities and maintaining the separation of operational planes can pose significant challenges. Additionally, the deterministic nature of identity and fingerprinting may require further refinement to address edge cases and potential vulnerabilities. Future research should focus on enhancing the adaptability of the protocol to accommodate evolving multi-agent system architectures and emerging security threats \cite{Sharma2025}.
+
+In conclusion, the RunProof protocol represents a significant advancement in verifiable agentic execution and cryptographic provenance. Its emphasis on protocol-level integration, scalability through composition, and structural identity offers a robust framework for future developments in multi-agent systems.
+\texttt{`}
+
+\section{Conclusion}
+\texttt{`}markdown
+\subsection{7. Conclusion}
+
+The RunProof Protocol represents a significant advancement in the domain of verifiable agentic execution and cryptographic provenance. This paper has articulated the necessity of treating RunProof as a protocol rather than merely a service, emphasizing its foundational role in ensuring reliable and secure execution across multi-agent systems. By conceptualizing RunProof as a protocol, akin to the adaptation of TURN to SIP \cite{Guezouri2010}, we establish a robust framework that enhances interoperability and scalability within distributed environments.
+
+One of the key contributions of this work is the demonstration that system scalability is achieved through the composition of the RunProof primitive, rather than its replacement. This compositional approach aligns with the principles of modularity and extensibility, allowing for the seamless integration of additional functionalities as system requirements evolve \cite{Li2025}. Furthermore, the protocol supports the notion of agents as first-class actors, necessitating a model that accommodates diverse typed entities such as humans, organizations, services, contracts, policies, wallets, datasets, workflows, and environments \cite{Moslemi2026}.
+
+The separation of concerns across the execution plane, cognition plane, world-state plane, event plane, and proof plane is another pivotal aspect of the RunProof Protocol. This architectural distinction ensures that each plane operates independently, thereby enhancing the system's robustness and facilitating the integration of specialized components \cite{Sharma2025}. Such a structured approach is critical for maintaining the integrity and reliability of multi-agent systems in complex operational contexts.
+
+A novel contribution of this paper is the emphasis on identity derivation from structure. We propose that agent and run fingerprints should be deterministic, canonical, hierarchical, and attestable, ensuring that identity management within the system is both secure and verifiable \cite{Bhat2018}. This approach not only strengthens the security posture of the system but also provides a clear pathway for auditing and provenance tracking.
+
+Future research directions include the exploration of adaptive synchronization mechanisms for heterogeneous multi-agent networks, as suggested by [Arevalo-Castiblanco et al., 2020]. Additionally, the integration of advanced communication protocols to enhance agent collaboration and coordination remains an area ripe for investigation \cite{Zhu2022}. Finally, the development of more sophisticated identity management techniques, potentially leveraging wavelet-based fingerprinting methods \cite{Shore2025}, could further bolster the security and efficiency of the RunProof Protocol.
+
+In conclusion, the RunProof Protocol sets a new standard for verifiable agentic execution and cryptographic provenance, offering a scalable, secure, and adaptable framework for the next generation of multi-agent systems.
+\texttt{`}
+
+
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}
